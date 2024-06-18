@@ -1,0 +1,14 @@
+{
+  "name": "@humanwhocodes/object-store",
+  "version": "0.0.0",
+  "exports": "./dist/object-store.js",
+  "publish": {
+    "include": [
+      "jsr.json",
+      "LICENSE",
+      "README.md",
+      "dist/object-store.js",
+      "dist/object-store.d.ts"
+    ]
+  }
+}
