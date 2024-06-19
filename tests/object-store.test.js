@@ -170,7 +170,28 @@ describe("ObjectStore", () => {
 
             });
 
+            it("should update a file's parent folder", done => {
+                const folder1 = store.createFolder("foo");
+                const folder2 = store.createFolder("bar");
+                const file = store.createFile("baz.txt", { parentId: folder1.id });
 
+                setTimeout(() => {
+                    store.updateFile(file.id, { parentId: folder2.id });
+                    const updatedFile = store.getFile(file.id);
+
+                    assert.strictEqual(updatedFile.parent_id, folder2.id);
+                    assert.notStrictEqual(updatedFile.created_at, updatedFile.modified_at);
+                    assert.notStrictEqual(file.modified_at, updatedFile.modified_at);
+
+                    const updatedFolder1 = store.getFolder(folder1.id);
+                    assert.strictEqual(updatedFolder1.entries.length, 0);
+
+                    const updatedFolder2 = store.getFolder(folder2.id);
+                    assert.strictEqual(updatedFolder2.entries.length, 1);
+                    done();
+                }, 0);
+
+            });
 
             it("should throw an error when the file doesn't exist", () => {
                 assert.throws(() => {
@@ -315,6 +336,29 @@ describe("ObjectStore", () => {
                     assert.notStrictEqual(folder.modified_at, updatedFolder.modified_at);
                     done();
                 }, 0);
+            });
+
+            it("should update a folder's parent folder", done => {
+                const folder1 = store.createFolder("foo");
+                const folder2 = store.createFolder("bar");
+                const subfolder = store.createFolder("baz", { parentId: folder1.id });
+
+                setTimeout(() => {
+                    store.updateFolder(subfolder.id, { parentId: folder2.id });
+                    const updatedFolder = store.getFolder(subfolder.id);
+
+                    assert.strictEqual(updatedFolder.parent_id, folder2.id);
+                    assert.notStrictEqual(updatedFolder.created_at, updatedFolder.modified_at);
+                    assert.notStrictEqual(subfolder.modified_at, updatedFolder.modified_at);
+
+                    const updatedFolder1 = store.getFolder(folder1.id);
+                    assert.strictEqual(updatedFolder1.entries.length, 0);
+
+                    const updatedFolder2 = store.getFolder(folder2.id);
+                    assert.strictEqual(updatedFolder2.entries.length, 1);
+                    done();
+                }, 0);
+
             });
 
             it("should throw an error when the folder doesn't exist", () => {

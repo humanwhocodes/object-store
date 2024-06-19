@@ -222,6 +222,7 @@ class Folder extends Entry {
     add(entry) {
         this.#entries.push(entry);
         this.modifiedAt = new Date();
+        entry.modifiedAt = new Date(this.modifiedAt);
     }
 
     /**
@@ -232,6 +233,7 @@ class Folder extends Entry {
     remove(entry) {
         this.#entries = this.#entries.filter(e => e.id !== entry.id);
         this.modifiedAt = new Date();
+        entry.modifiedAt = new Date(this.modifiedAt);
     }
 
     /**
@@ -383,11 +385,12 @@ export class ObjectStore {
      * @param {Object} options The options to update the file.
      * @param {string} [options.name] The new name of the file.
      * @param {string|ArrayBuffer|undefined} [options.content] The new content of the file.
+     * @param {string} [options.parentId] The ID of the new parent folder.
      * @returns {Object} The updated file record.
      * @throws {Error} If the file is not found.
      * @throws {Error} If the file is not a file.
      */
-    updateFile(id, { name, content }) {
+    updateFile(id, { name, content, parentId }) {
         const file = this.#objects.get(id);
 
         if (!file) {
@@ -404,6 +407,21 @@ export class ObjectStore {
 
         if (content) {
             /** @type {File} */ (file).content = content;
+        }
+
+        if (parentId) {
+            const newParent = this.#objects.get(parentId);
+
+            if (!newParent) {
+                throw new TypeError(`Parent "${parentId}" not found.`);
+            }
+
+            if (newParent.type !== "folder") {
+                throw new TypeError(`Parent "${parentId}" not a folder.`);
+            }
+
+            this.#parents.get(file.id).remove(file);
+            this.#register(file, /** @type {Folder} */ (newParent));
         }
 
         return file.toJSON();
@@ -484,9 +502,10 @@ export class ObjectStore {
      * @param {string} id The ID of the folder to update.
      * @param {Object} options The options to update the folder.
      * @param {string} [options.name] The new name of the folder.
+     * @param {string} [options.parentId] The ID of the new parent folder.
      * @returns {Object} The updated folder record.
      */
-    updateFolder(id, { name }) {
+    updateFolder(id, { name, parentId }) {
         const folder = this.#objects.get(id);
 
         if (!folder) {
@@ -499,6 +518,21 @@ export class ObjectStore {
 
         if (name) {
             folder.name = name;
+        }
+
+        if (parentId) {
+            const newParent = this.#objects.get(parentId);
+
+            if (!newParent) {
+                throw new TypeError(`Parent "${parentId}" not found.`);
+            }
+
+            if (newParent.type !== "folder") {
+                throw new TypeError(`Parent "${parentId}" not a folder.`);
+            }
+
+            this.#parents.get(folder.id).remove(folder);
+            this.#register(folder, /** @type {Folder} */ (newParent));
         }
 
         return folder.toJSON();
