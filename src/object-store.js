@@ -380,6 +380,27 @@ export class ObjectStore {
     }
 
     /**
+     * Gets the content of a file.
+     * @param {string} id The ID of the file.
+     * @returns {string|ArrayBuffer|undefined} The content of the file.
+     * @throws {Error} If the file is not found.
+     * @throws {Error} If the file is not a file.
+     */
+    getFileContent(id) {
+        const file = this.#objects.get(id);
+
+        if (!file) {
+            throw new TypeError(`File "${id}" not found.`);
+        }
+
+        if (file.type !== "file") {
+            throw new TypeError("Not a file.");
+        }
+
+        return /** @type {File} */ (file).content;
+    }
+
+    /**
      * Updates a file.
      * @param {string} id The ID of the file to update.
      * @param {Object} options The options to update the file.

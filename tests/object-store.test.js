@@ -111,6 +111,36 @@ describe("ObjectStore", () => {
 
         });
 
+        describe("getFileContent()", () => {
+
+            it("should return a file's content as a string", () => {
+                const file = store.createFile("foo.txt", { content: "Hello, world!" });
+                const content = store.getFileContent(file.id);
+                assert.strictEqual(content, "Hello, world!");
+            });
+
+            it("should return a file's content as a buffer", () => {
+                const encoder = new TextEncoder();
+                const file = store.createFile("foo.txt", { content: encoder.encode("Hello, world!").buffer });
+                const content = store.getFileContent(file.id, { asBuffer: true });
+                assert.deepStrictEqual(content, encoder.encode("Hello, world!").buffer);
+            });
+
+            it("should throw an error when the file doesn't exist", () => {
+                assert.throws(() => {
+                    store.getFileContent("123");
+                }, /File "123" not found/u);
+            });
+
+            it("should throw an error when the ID is a folder", () => {
+                const folder = store.createFolder("foo");
+                assert.throws(() => {
+                    store.getFileContent(folder.id);
+                }, /Not a file/u);
+            });
+
+        });
+
         describe("updateFile()", () => {
 
             it("should update a file's name", done => {
