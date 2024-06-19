@@ -80,7 +80,94 @@ import { ObjectStore } from "https://cdn.skypack.dev/@humanwhocodes/object-store
 
 ## API
 
-TODO
+### Creating Files
+
+```js
+const store = new ObjectStore();
+const file = store.createFile("file_id", { name: "foo.txt", content: "Foo", parentId: "folder_id" });
+
+console.log(file);
+/*
+{
+    id: "file_id",
+    name: "foo.txt",
+    type: "file",
+    parent_id: "parent_id",
+    created_at: "2022-10-20T12:00:00Z",
+    modified_at: "2022-10-20T12:00:00Z",
+}
+*/
+```
+
+**Note:** When `parentId` is omitted, the root folder is used.
+
+### Retrieving Files
+
+```js
+const store = new ObjectStore();
+const file = store.createFile("file_id", { name: "foo.txt", content: "Foo" });
+const retrievedFile = store.getFile("file_id");
+console.log(retrievedFile);
+/*
+{
+    id: "file_id",
+    name: "foo.txt",
+    type: "file",
+    parent_id: "parent_id",
+    created_at: "2022-10-20T12:00:00Z",
+    modified_at: "2022-10-20T12:00:00Z",
+}
+*/
+```
+
+### Retrieving File Content
+
+```js
+const store = new ObjectStore();
+const file = store.createFile("file_id", { name: "foo.txt", content: "Foo" });
+const content = store.getFileContent("file_id");
+console.log(content);   // "Foo"
+```
+
+### Deleting Files
+
+```js
+const store = new ObjectStore();
+const file = store.createFile("file_id", { name: "foo.txt", content: "Foo" });
+
+store.deleteFile("file_id");
+```
+
+### Creating Folders
+```js
+const store = new ObjectStore();
+const folder = store.createFolder("folder_id", { name: "my-folder", parentId: "parent_folder_id" });
+console.log(folder);
+/*
+{
+    id: "folder_id",
+    name: "my-folder",
+    type: "folder",
+    parent_id: "parent_id",
+    created_at: "2022-10-20T12:00:00Z",
+    modified_at: "2022-10-20T12:00:00Z",
+    entries: []
+}
+*/
+```
+
+**Note:** When `parentId` is omitted, the root folder is used.
+
+### Deleting Folders
+
+```js
+const store = new ObjectStore();
+const file = store.createFolder("folder_id");
+
+store.deleteFolder("folder_id");
+```
+
+
 
 ## Developer Setup
 
