@@ -1,6 +1,6 @@
 {
   "name": "@humanwhocodes/object-store",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "exports": "./dist/object-store.js",
   "publish": {
     "include": [
