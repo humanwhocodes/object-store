@@ -8,6 +8,6 @@ const pkg = JSON.parse(fs.readFileSync("./package.json", "utf8"));
 const url = new URL("../" + pkg.exports.import.default, import.meta.url);
 
 import(`${url}`).then(({ ObjectStore }) => {
-    new ObjectStore(() => {});
-    console.log("ESM load: success");
+	new ObjectStore(() => {});
+	console.log("ESM load: success");
 });
