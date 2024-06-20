@@ -84,7 +84,7 @@ import { ObjectStore } from "https://cdn.skypack.dev/@humanwhocodes/object-store
 
 ```js
 const store = new ObjectStore();
-const file = store.createFile("file_id", { name: "foo.txt", content: "Foo", parentId: "folder_id" });
+const file = store.createFile("foo.txt", { content: "Foo", parentId: "folder_id" });
 
 console.log(file);
 /*
@@ -105,8 +105,8 @@ console.log(file);
 
 ```js
 const store = new ObjectStore();
-const file = store.createFile("file_id", { name: "foo.txt", content: "Foo" });
-const retrievedFile = store.getFile("file_id");
+const file = store.createFile("foo.txt", { content: "Foo" });
+const retrievedFile = store.getFile(file.id);
 console.log(retrievedFile);
 /*
 {
@@ -124,8 +124,8 @@ console.log(retrievedFile);
 
 ```js
 const store = new ObjectStore();
-const file = store.createFile("file_id", { name: "foo.txt", content: "Foo" });
-const content = store.getFileContent("file_id");
+const file = store.createFile("foo.txt", { content: "Foo" });
+const content = store.getFileContent(file.id);
 console.log(content);   // "Foo"
 ```
 
@@ -133,15 +133,15 @@ console.log(content);   // "Foo"
 
 ```js
 const store = new ObjectStore();
-const file = store.createFile("file_id", { name: "foo.txt", content: "Foo" });
+const file = store.createFile("foo.txt", { content: "Foo" });
 
-store.deleteFile("file_id");
+store.deleteFile(file.id);
 ```
 
 ### Creating Folders
 ```js
 const store = new ObjectStore();
-const folder = store.createFolder("folder_id", { name: "my-folder", parentId: "parent_folder_id" });
+const folder = store.createFolder("my-folder", { parentId: "parent_folder_id" });
 console.log(folder);
 /*
 {
@@ -162,12 +162,10 @@ console.log(folder);
 
 ```js
 const store = new ObjectStore();
-const file = store.createFolder("folder_id");
+const folder = store.createFolder("my-folder");
 
-store.deleteFolder("folder_id");
+store.deleteFolder(folder.id);
 ```
-
-
 
 ## Developer Setup
 
