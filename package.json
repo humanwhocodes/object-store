@@ -1,6 +1,6 @@
 {
   "name": "@humanwhocodes/object-store",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An in-memory object store modeled on cloud drives like Google Drive.",
   "type": "module",
   "main": "dist/object-store.cjs",
