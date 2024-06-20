@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/humanwhocodes/object-store/compare/object-store-v0.1.1...object-store-v0.2.0) (2024-06-20)
+
+
+### Features
+
+* copyFile/copyFolder methods ([a8b7ee8](https://github.com/humanwhocodes/object-store/commit/a8b7ee8bcb4219f0aea823e8fefa3b54f6402515))
+
 ## [0.1.1](https://github.com/humanwhocodes/object-store/compare/object-store-v0.1.0...object-store-v0.1.1) (2024-06-20)
 
 
