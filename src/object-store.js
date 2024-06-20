@@ -83,6 +83,14 @@ class Entry {
 	}
 
 	/**
+	 * The parent folder of the entry.
+	 * @type {Folder|undefined}
+	 */
+	get parent() {
+		return this.store.getParent(this.id);
+	}
+
+	/**
 	 * Converts the entry to a JSON object.
 	 * @returns {Object} The JSON object representing the entry.
 	 */
@@ -99,7 +107,7 @@ class Entry {
 			id: this.id,
 			name: this.name,
 			type: this.type,
-			parent_id: this.store.getParent(this.id)?.id,
+			parent_id: this.parent?.id,
 			created_at: this.createdAt.toISOString(),
 			modified_at: this.modifiedAt.toISOString(),
 		};
@@ -331,7 +339,7 @@ export class ObjectStore {
 	 * @param {Object} [options] Additional options.
 	 * @param {string} [options.parentId] The ID of the parent folder.
 	 * @param {string|ArrayBuffer|undefined} [options.content] The content of the file.
-	 * @returns {string} The ID of the file.
+	 * @returns {Object} The file object.
 	 * @throws {Error} If the parent is not found or is not a folder.
 	 */
 	createFile(name, { parentId = this.#root.id, content } = {}) {
@@ -350,6 +358,45 @@ export class ObjectStore {
 		this.#register(file, /** @type {Folder} */ (parent));
 
 		return file.toJSON();
+	}
+
+	/**
+	 * Copies a file to a new location, optionally renaming it.
+	 * @param {string} id The ID of the file to copy.
+	 * @param {Object} options The options to copy the file.
+	 * @param {string} [options.name] The new name of the file.
+	 * @param {string} [options.parentId] The ID of the new parent folder.
+	 * @returns {Object} The file object.
+	 * @throws {Error} If the file is not found.
+	 * @throws {Error} If the file is not a file.
+	 * @throws {Error} If the parent is not found or is not a folder.
+	 */
+	copyFile(id, { name, parentId } = {}) {
+		const file = this.#objects.get(id);
+
+		if (!file) {
+			throw new TypeError(`File "${id}" not found.`);
+		}
+
+		if (file.type !== "file") {
+			throw new TypeError("Not a file.");
+		}
+
+		const parent = this.#objects.get(parentId ?? file.parent.id);
+
+		if (!parent) {
+			throw new TypeError("Parent not found.");
+		}
+
+		if (parent.type !== "folder") {
+			throw new TypeError("Parent is not a folder.");
+		}
+
+		const content = /** @type {File} */ (file).content;
+		return this.createFile(name ?? file.name, {
+			parentId: parent.id,
+			content,
+		});
 	}
 
 	/**
@@ -472,7 +519,7 @@ export class ObjectStore {
 	 * @param {string} name The name of the folder.
 	 * @param {Object} [options] Additional options.
 	 * @param {string} [options.parentId] The ID of the parent folder.
-	 * @returns {string} The ID of the folder.
+	 * @returns {Object} The folder object.
 	 * @throws {Error} If the parent is not found or is not a folder.
 	 */
 	createFolder(name, { parentId = this.#root.id } = {}) {
@@ -491,6 +538,60 @@ export class ObjectStore {
 		this.#register(folder, /** @type {Folder} */ (parent));
 
 		return folder.toJSON();
+	}
+
+	/**
+	 * Copies a folder to a new location, optionally renaming it.
+	 * @param {string} id The ID of the folder to copy.
+	 * @param {Object} options The options to copy the folder.
+	 * @param {string} [options.name] The new name of the folder.
+	 * @param {string} [options.parentId] The ID of the new parent folder.
+	 * @returns {Object} The folder object.
+	 * @throws {Error} If the folder is not found.
+	 * @throws {Error} If the folder is not a folder.
+	 * @throws {Error} If the parent is not found or is not a folder.
+	 * @throws {Error} If the parent is the same as the folder.
+	 */
+	copyFolder(id, { name, parentId } = {}) {
+		const folder = /** @type {Folder} */ (this.#objects.get(id));
+
+		if (!folder) {
+			throw new TypeError(`Folder "${id}" not found.`);
+		}
+
+		if (folder.type !== "folder") {
+			throw new TypeError("Not a folder.");
+		}
+
+		const parent = this.#objects.get(parentId ?? folder.parent.id);
+
+		if (!parent) {
+			throw new TypeError("Parent not found.");
+		}
+
+		if (parent.type !== "folder") {
+			throw new TypeError("Parent is not a folder.");
+		}
+
+		if (folder.id === parent.id) {
+			throw new TypeError("Cannot copy a folder into itself.");
+		}
+
+		// first create the folder copy
+		const newFolder = this.createFolder(name ?? folder.name, {
+			parentId: parent.id,
+		});
+
+		// then copy all the entries
+		for (const entry of folder.entries()) {
+			if (entry.type === "folder") {
+				this.copyFolder(entry.id, { parentId: newFolder.id });
+			} else {
+				this.copyFile(entry.id, { parentId: newFolder.id });
+			}
+		}
+
+		return this.getFolder(newFolder.id);
 	}
 
 	/**

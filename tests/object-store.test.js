@@ -87,6 +87,81 @@ describe("ObjectStore", () => {
 			});
 		});
 
+		describe("copyFile()", () => {
+			it("should copy a file to a different folder", () => {
+				const file = store.createFile("foo.txt", {
+					content: "Hello, world!",
+				});
+				const folder = store.createFolder("bar");
+				const copy = store.copyFile(file.id, { parentId: folder.id });
+
+				assert.notStrictEqual(file.id, copy.id);
+				assert.strictEqual(file.name, copy.name);
+				assert.strictEqual(file.size, copy.size);
+				assert.strictEqual(file.type, copy.type);
+				assert.strictEqual(folder.id, copy.parent_id);
+			});
+
+			it("should copy a file to the same folder", () => {
+				const folder = store.createFolder("foo");
+				const file = store.createFile("bar.txt", {
+					parentId: folder.id,
+				});
+				const copy = store.copyFile(file.id);
+
+				assert.notStrictEqual(file.id, copy.id);
+				assert.strictEqual(file.name, copy.name);
+				assert.strictEqual(file.size, copy.size);
+				assert.strictEqual(file.type, copy.type);
+				assert.strictEqual(folder.id, copy.parent_id);
+			});
+
+			it("should copy a file and rename it", () => {
+				const file = store.createFile("foo.txt", {
+					content: "Hello, world!",
+				});
+				const folder = store.createFolder("bar");
+				const copy = store.copyFile(file.id, {
+					parentId: folder.id,
+					name: "baz.txt",
+				});
+
+				assert.notStrictEqual(file.id, copy.id);
+				assert.strictEqual(copy.name, "baz.txt");
+				assert.strictEqual(file.size, copy.size);
+				assert.strictEqual(file.type, copy.type);
+				assert.strictEqual(folder.id, copy.parent_id);
+			});
+
+			it("should throw an error when the file doesn't exist", () => {
+				assert.throws(() => {
+					store.copyFile("123");
+				}, /File "123" not found/u);
+			});
+
+			it("should throw an error when the object is a folder", () => {
+				const folder = store.createFolder("foo");
+				assert.throws(() => {
+					store.copyFile(folder.id);
+				}, /Not a file/u);
+			});
+
+			it("should throw an error when the parent doesn't exist", () => {
+				const file = store.createFile("foo.txt");
+				assert.throws(() => {
+					store.copyFile(file.id, { parentId: "123" });
+				}, /Parent not found/u);
+			});
+
+			it("should throw an error when the parent ID is a file", () => {
+				const file = store.createFile("foo.txt");
+				const parentId = store.createFile("bar.txt").id;
+				assert.throws(() => {
+					store.copyFile(file.id, { parentId });
+				}, /Parent is not a folder/u);
+			});
+		});
+
 		describe("getFile()", () => {
 			it("should return a file", () => {
 				const file = store.createFile("foo.txt");
@@ -345,6 +420,146 @@ describe("ObjectStore", () => {
 				const parentId = store.createFile("foo.txt").id;
 				assert.throws(() => {
 					store.createFolder("bar", { parentId });
+				}, /Parent is not a folder/u);
+			});
+		});
+
+		describe("copyFolder()", () => {
+			it("should copy a folder to the same folder", () => {
+				const folder = store.createFolder("foo");
+				const subfolder = store.createFolder("bar", {
+					parentId: folder.id,
+				});
+				const copy = store.copyFolder(subfolder.id);
+
+				assert.notStrictEqual(subfolder.id, copy.id);
+				assert.strictEqual(subfolder.name, copy.name);
+				assert.strictEqual(subfolder.type, copy.type);
+				assert.strictEqual(subfolder.parent_id, copy.parent_id);
+				assert.strictEqual(copy.parent_id, folder.id);
+				assert.strictEqual(
+					subfolder.entries.length,
+					copy.entries.length,
+				);
+			});
+
+			it("should copy a folder to a different folder", () => {
+				const folder1 = store.createFolder("foo");
+				const folder2 = store.createFolder("bar");
+				const subfolder = store.createFolder("baz", {
+					parentId: folder1.id,
+				});
+				const copy = store.copyFolder(subfolder.id, {
+					parentId: folder2.id,
+				});
+
+				assert.notStrictEqual(subfolder.id, copy.id);
+				assert.strictEqual(subfolder.name, copy.name);
+				assert.strictEqual(subfolder.type, copy.type);
+				assert.strictEqual(copy.parent_id, folder2.id);
+				assert.strictEqual(copy.parent_id, folder2.id);
+				assert.strictEqual(
+					subfolder.entries.length,
+					copy.entries.length,
+				);
+			});
+
+			it("should copy a folder and rename it", () => {
+				const folder = store.createFolder("foo");
+				const subfolder = store.createFolder("bar", {
+					parentId: folder.id,
+				});
+				const copy = store.copyFolder(subfolder.id, { name: "baz" });
+
+				assert.notStrictEqual(subfolder.id, copy.id);
+				assert.strictEqual(copy.name, "baz");
+				assert.strictEqual(subfolder.type, copy.type);
+				assert.strictEqual(copy.parent_id, folder.id);
+				assert.strictEqual(
+					subfolder.entries.length,
+					copy.entries.length,
+				);
+			});
+
+			it("should copy a folder and all of its entries", () => {
+				const folder = store.createFolder("foo");
+				store.createFile("bar.txt", { parentId: folder.id });
+				const subfolder = store.createFolder("baz", {
+					parentId: folder.id,
+				});
+				store.createFile("qux.txt", { parentId: subfolder.id });
+
+				const copy = store.copyFolder(folder.id);
+
+				// get updated entries
+				const originalFolder = store.getFolder(folder.id);
+
+				assert.notStrictEqual(originalFolder.id, copy.id);
+				assert.strictEqual(originalFolder.name, copy.name);
+				assert.strictEqual(originalFolder.type, copy.type);
+				assert.strictEqual(copy.parent_id, ROOT_FOLDER_ID);
+				assert.strictEqual(
+					originalFolder.entries.length,
+					copy.entries.length,
+				);
+				assert.strictEqual(
+					originalFolder.entries[0].name,
+					copy.entries[0].name,
+				);
+				assert.strictEqual(
+					originalFolder.entries[1].name,
+					copy.entries[1].name,
+				);
+
+				// get the subfolder entries
+				const originalSubfolder = store.getFolder(subfolder.id);
+				const copiedSubfolder = store.getFolder(copy.entries[1].id);
+
+				assert.notStrictEqual(originalSubfolder.id, copiedSubfolder.id);
+				assert.strictEqual(
+					originalSubfolder.name,
+					copiedSubfolder.name,
+				);
+				assert.strictEqual(
+					originalSubfolder.type,
+					copiedSubfolder.type,
+				);
+				assert.strictEqual(copiedSubfolder.parent_id, copy.id);
+				assert.strictEqual(
+					originalSubfolder.entries.length,
+					copiedSubfolder.entries.length,
+				);
+				assert.strictEqual(
+					originalSubfolder.entries[0].name,
+					copiedSubfolder.entries[0].name,
+				);
+			});
+
+			it("should throw an error when the folder doesn't exist", () => {
+				assert.throws(() => {
+					store.copyFolder("123");
+				}, /Folder "123" not found/u);
+			});
+
+			it("should throw an error when the object is a file", () => {
+				const file = store.createFile("foo.txt");
+				assert.throws(() => {
+					store.copyFolder(file.id);
+				}, /Not a folder/u);
+			});
+
+			it("should throw an error when the parent doesn't exist", () => {
+				const folder = store.createFolder("foo");
+				assert.throws(() => {
+					store.copyFolder(folder.id, { parentId: "123" });
+				}, /Parent not found/u);
+			});
+
+			it("should throw an error when the parent ID is a file", () => {
+				const folder = store.createFolder("foo");
+				const parentId = store.createFile("bar.txt").id;
+				assert.throws(() => {
+					store.copyFolder(folder.id, { parentId });
 				}, /Parent is not a folder/u);
 			});
 		});

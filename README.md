@@ -101,6 +101,50 @@ console.log(file);
 
 **Note:** When `parentId` is omitted, the root folder is used.
 
+### Copying Files
+
+```js
+const store = new ObjectStore();
+const file = store.createFile("foo.txt", { content: "Foo", parentId: "folder_id" });
+const copiedFile = store.copyFile(file.id, { parentId: "some_other_folder_id", name: "bar.txt"});
+console.log(copiedFile);
+/*
+{
+    id: "copy-file-id",
+    name: "bar.txt",
+    type: "file",
+    parent_id: "some_other_folder_id",
+    created_at: "2022-10-20T12:00:00Z",
+    modified_at: "2022-10-20T12:00:00Z"
+}
+*/
+```
+
+**Note:** `name` is optional. When `parentId` is not specified, the ID of the original's parent is used.
+
+### Moving/Renaming Files
+
+```js
+const store = new ObjectStore();
+const file = store.createFile("foo.txt", { content: "Foo", parentId: "folder_id" });
+const updatedFile = store.updateFile(file.id, { parentId: "some_other_folder_id", name: "bar.txt"});
+console.log(updatedFile);
+/*
+{
+    id: "file-id",
+    name: "bar.txt",
+    type: "file",
+    parent_id: "some_other_folder_id",
+    created_at: "2022-10-20T12:00:00Z",
+    modified_at: "2022-10-20T12:00:00Z"
+}
+*/
+```
+
+**Note:** Both `name` and `parentId` are optional.
+
+
+
 ### Retrieving Files
 
 ```js
@@ -139,6 +183,7 @@ store.deleteFile(file.id);
 ```
 
 ### Creating Folders
+
 ```js
 const store = new ObjectStore();
 const folder = store.createFolder("my-folder", { parentId: "parent_folder_id" });
@@ -157,6 +202,48 @@ console.log(folder);
 ```
 
 **Note:** When `parentId` is omitted, the root folder is used.
+
+### Copying Folders
+
+```js
+const store = new ObjectStore();
+const folder = store.createFolder("my-folder", { parentId: "parent_folder_id" });
+const copiedFolder = store.copyFolder(folder.id, { parentId: "some_other_folder_id", name: "my-folder-copy"});
+console.log(copiedFolder);
+/*
+{
+    id: "folder_copy_id",
+    name: "my-folder-copy",
+    type: "folder",
+    parent_id: "some_other_folder_id",
+    created_at: "2022-10-20T12:00:00Z",
+    modified_at: "2022-10-20T12:00:00Z",
+    entries: []
+}
+*/
+```
+
+**Note:** `name` is optional. When `parentId` is not specified, the ID of the original's parent is used.
+
+### Moving/Renaming Folders
+
+```js
+const store = new ObjectStore();
+const folder = store.createFolder("my-folder", { parentId: "parent_folder_id" });
+const updatedFolder = store.updateFolder(file.id, { parentId: "some_other_folder_id", name: "my-new-name"});
+console.log(updatedFolder);
+/*
+{
+    id: "folder_id",
+    name: "my-new-name",
+    type: "folder",
+    parent_id: "some_other_folder_id",
+    created_at: "2022-10-20T12:00:00Z",
+    modified_at: "2022-10-20T12:00:00Z",
+    entries: []
+}
+*/
+```
 
 ### Deleting Folders
 
