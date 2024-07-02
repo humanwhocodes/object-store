@@ -9,6 +9,7 @@
 //-----------------------------------------------------------------------------
 
 let nextId = 0;
+const getParent = Symbol("getParent");
 
 /**
  * Represents an entry in the object store.
@@ -87,7 +88,7 @@ class Entry {
 	 * @type {Folder|undefined}
 	 */
 	get parent() {
-		return this.store.getParent(this.id);
+		return this.store[getParent](this.id);
 	}
 
 	/**
@@ -157,7 +158,7 @@ class File extends Entry {
 	set content(value) {
 		this.#content = value;
 		this.modifiedAt = new Date();
-		this.store.getParent(this.id).modifiedAt = this.modifiedAt;
+		this.store[getParent](this.id).modifiedAt = this.modifiedAt;
 	}
 
 	/**
@@ -325,7 +326,7 @@ export class ObjectStore {
 	 * @param {string} id The ID of the object to get the parent of.
 	 * @returns {Folder|undefined} The parent of the object or `undefined` if not found.
 	 */
-	getParent(id) {
+	[getParent](id) {
 		return this.#parents.get(id);
 	}
 
