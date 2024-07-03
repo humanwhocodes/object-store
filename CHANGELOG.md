@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/humanwhocodes/object-store/compare/object-store-v0.2.0...object-store-v0.3.0) (2024-07-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove getParent() from public API
+
+### Bug Fixes
+
+* Remove getParent() from public API ([e54788c](https://github.com/humanwhocodes/object-store/commit/e54788c006a26cfdb09ef12954c629d0b836da53))
+
 ## [0.2.0](https://github.com/humanwhocodes/object-store/compare/object-store-v0.1.1...object-store-v0.2.0) (2024-06-20)
 
 
