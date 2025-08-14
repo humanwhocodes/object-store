@@ -15,5 +15,10 @@
       matchDatasources: ['npm'],
       minimumReleaseAge: '30 days',
     },
+		{
+			matchDatasources: ["npm"],
+			matchDepTypes: ["devDependencies"],
+			enabled: false,
+		},
   ],
 }
